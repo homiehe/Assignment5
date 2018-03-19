@@ -1,0 +1,81 @@
+---
+title: "Assignment 5"
+author: "Hongyi He,Glib, Hong Chen"
+date: "2018Äê3ÔÂ18ÈÕ"
+output: slidy_presentation
+---
+
+```{r, echo = T, include=F}
+library(tidyverse)
+library(readxl)
+library(stringr)
+library(ggplot2)
+```
+
+# 1.Daily timeseries plot
+
+  The rows in red is LD50 meaning the amount of a toxic agent that is sufficient to kill 50 percent of a population of animals usually within a certain time, the unit of which is mg/kg.
+  The blue rows is Real indicating that the chemical facts in Brocoli, the unit of which is lbs.
+
+```{r, echo = F}
+chemical_tox <- read.csv("chemical_tox.csv")
+
+veg_data3<-read.csv("veg_data3.csv")
+
+veg_data3<-as.tibble(veg_data3)
+
+veg_data3$Value <- as.numeric(veg_data3$Value)
+
+#get the data with toxicity info in it
+
+chemical_tox <- as.tibble(chemical_tox)
+
+chemical_tox$X <- as.integer(chemical_tox$X)
+
+chemical_tox$Name <- as.character(chemical_tox$Name)
+
+chemical_tox$ID <- as.character(chemical_tox$ID)
+
+chemical_tox <- chemical_tox %>% select(-ID)
+
+broc <- veg_data3 %>% filter(label == "RESTRICTED USE CHEMICAL", Commodity == "BROCCOLI", Unit.of.Measurement==" MEASURED IN LB")
+
+broc$Value <- as.numeric(broc$Value)
+
+broc <- left_join(broc,chemical_tox,by="Name")
+
+broc <- rename(broc,Real=Value,LD50=X)
+
+broc <- broc %>% gather(Real , LD50 , key="Toxicity", value="value")
+
+ggplot(broc, aes(x= Name, y=value )) + 
+  geom_bar(stat="identity",position = "dodge",aes(fill=Toxicity)) + 
+  labs(y = "Values(LB) ",x = "Chemical Name") +
+  coord_flip()+
+  labs(title="LD50(mg/kg) and Real content(lb) of Brocoli")
+```
+
+# 2.Chemicals in Cauliflower
+
+ The rows in red is LD50 meaning the amount of a toxicity is sufficient to kill 50 percent of a population of animals usually within a certain time, the unit of which is mg/kg.
+ The blue rows is Real indicating that the chemical facts in Cauliflowcer, the unit of which is lbs.
+
+```{r,echo = F}
+Caul <- veg_data3 %>% filter(label == "RESTRICTED USE CHEMICAL", Commodity == "CAULIFLOWER", Unit.of.Measurement==" MEASURED IN LB")
+
+Caul$Value <- as.numeric(Caul$Value)
+
+Caul <- left_join(Caul,chemical_tox,by="Name")
+
+Caul <- rename(Caul,Real=Value,LD50=X)
+
+Caul <- Caul %>% gather(Real , LD50 , key="Toxicity", value="value")
+
+#plot the Cauliflower 
+ggplot(Caul, aes(x= Name, y=value )) + 
+  geom_bar(stat="identity",position = "dodge",aes(fill=Toxicity)) + 
+  labs(y = "Values(LB) ",x = "Chemical Name") +
+  coord_flip()+
+  labs(title="LD50(mg/kg) and Real content(lb) of Cauliflower")
+```
+

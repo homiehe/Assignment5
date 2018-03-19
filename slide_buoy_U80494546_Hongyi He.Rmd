@@ -1,0 +1,120 @@
+---
+title: "Assignment5"
+author: "Hongyi He,Glib, Hong Chen"
+date: "2018Äê3ÔÂ17ÈÕ"
+output: slidy_presentation
+---
+```{r, echo = T, include=F}
+library(tidyverse)
+library(stringr)
+library(zoo)
+library(shiny)
+library(reshape2)
+library(ggplot2)
+library(devtools)
+library(easyGgplot2)
+```
+
+# 1.Daily timeseries plot
+
+1.1 Air Temperature 
+ 
+From 1987 to 2017 (data of 2011,12,13 was replaced by the nearby buoy)
+```{r,echo = F}
+data_total <- read.csv("data.csv")
+data_total <- as.tibble(data_total)
+data_total$Time <- as.Date(data_total$Time)
+daily <- filter(data_total,hh==12)
+ggplot(daily, aes(x = Time)) + 
+  geom_line(aes(y = ATMP), colour="green", size = 0.5) + 
+  ylab(label="Celsius degrees") + 
+  xlab("Time")
+```
+
+# 1.Daily timeseries plot
+1.2 Water Temperature
+
+From 1987 to 2017 (data of 2011,12,13 was replaced by the nearby buoy)
+```{r,echo = F}
+ggplot(daily, aes(x = Time)) + 
+  geom_line(aes(y = WTMP), colour="green", size = 0.5) + 
+  ylab(label="Celsius degrees") + 
+  xlab("Time")
+```
+
+# 2.Statistics
+
+2.1 Test that whether there is difference from 1988 to 2017
+
+```{r,echo=F}
+data_1987 <- data_total %>% filter(YYYY==1987) 
+data_2017 <- data_total %>% filter(YYYY==2017) 
+```
+
+2.1.1 test on ATMP
+
+```{r,echo=F}
+t.test(data_1987$ATMP,data_2017$ATMP)
+```
+
+  Because p-value < 2.2e-16 < 0.05, we tend to reject the null hypothes that atmp have the same mean in year 1988 and 2017. 
+
+# 2.Statistics
+2.1.2 test on WTMP
+
+```{r,echo=F}
+t.test(data_1987$WTMP,data_2017$WTMP)
+```
+
+  Because p-value < 2.2e-16 < 0.05, we tend to reject the null hypothes that wtmp have the same mean in the year 1988 and 2017.
+
+  Thus, there are significant changes in the past 30 years.
+  But we also want to know which direction did the atmp and wtmp move towards.
+
+# 2.1.3 Regression
+
+  Using regression line to show the direction of changing
+
+```{r,echo=F}
+reg_ATMP=ggplot(daily,aes(x=Time,y=ATMP))+geom_point()+geom_smooth(method="lm")+ggtitle("reg ATMP")
+reg_WTMP=ggplot(daily,aes(x=Time,y=WTMP))+geom_point()+geom_smooth(method="lm")+ggtitle("reg WTMP")
+ggplot2.multiplot(reg_ATMP,reg_WTMP)
+```
+
+  We can see a clear upward trend of the ATMP and WTMP from the regression line, which indicates that the global warming exists!
+
+
+# 3.Sampling Affection
+
+  Test whether sampling affected your evaluation of temperature change
+
+3.1 Hourly ATMP and WTMP
+
+```{r,echo=F}
+plot_daily <-ggplot(daily, aes(x = Time)) + 
+  geom_line(aes(y = WTMP), colour="green", size = 0.5) + 
+  geom_line(aes(y = ATMP), colour = "blue", size = 0.5) +
+  ylab(label="Celsius degrees") + 
+  xlab("Time")+
+  ggtitle("daily temp data")
+
+plot_hourly <-ggplot(data_total, aes(x = Time)) + 
+  geom_line(aes(y = WTMP), colour="green", size = 0.5) + 
+  geom_line(aes(y = ATMP), colour = "blue", size = 0.5) +
+  ylab(label="Celsius degrees") + 
+  xlab("Time")+
+  ggtitle("hourly temp data")
+
+plot_hourly
+```
+
+# 3.Sampling Affection
+
+3.2 Compare hourly data with daily data:
+
+```{r,echo=F}
+ggplot2.multiplot(plot_daily,plot_hourly)
+```
+
+  As we can see in the above pictures, they are nearly the same, while the hourly graph takes more times to load and run, So we'd better use daily data rather than hourly.
+
